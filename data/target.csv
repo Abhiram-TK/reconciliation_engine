@@ -1,6 +1,6 @@
-invoice_id,customer_name,amount
-INV001,Abhiram TK,1000
-INV002,Akash Bhatt,1500
-INV003,Bhavesh Patel,2000
-INV004,Shivam Ladha,1000
-INV006,Gireesh Dhar,1200
+invoice_id,customer_name,invoice_date,amount
+INV001,abhiram tk,2026-06-01,1000.00
+INV002,AKASH BHATT,06/01/2026,1500
+INV003,Bhavesh Patel,2026-06-01,2000
+INV004,shivam ladha,06/01/2026,1000
+INV005,Dhiren Chamadiya,2026-06-01,1200
