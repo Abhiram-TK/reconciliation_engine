@@ -1,6 +1,11 @@
 import pandas as pd
+from pathlib import Path
 
 def generate_reports(results):
+
+    BASE_DIR = Path(__file__).resolve().parent.parent
+
+    REPORTS_DIR = BASE_DIR / "reports"
 
     matched_records = []
     mismatched_records = []
@@ -24,6 +29,6 @@ def generate_reports(results):
     mismatched_df = pd.DataFrame(mismatched_records)
     missing_df = pd.DataFrame(missing_records)
 
-    matched_df.to_csv("reports/matched.csv", index=False)
-    mismatched_df.to_csv("reports/mismatched.csv", index=False)
-    missing_df.to_csv("reports/missing.csv", index=False)
+    matched_df.to_csv(REPORTS_DIR / "matched.csv", index=False)
+    mismatched_df.to_csv(REPORTS_DIR / "mismatched.csv", index=False)
+    missing_df.to_csv(REPORTS_DIR / "missing.csv", index=False)
