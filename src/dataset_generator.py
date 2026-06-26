@@ -1,0 +1,78 @@
+from pathlib import Path
+import random
+
+import pandas as pd
+from faker import Faker
+
+fake = Faker("en_IN")
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+DATA_DIR = BASE_DIR / "data"
+
+
+def generate_dataset(records: int = 1000, mismatch_rate: float = 0.05):
+
+    source = []
+    target = []
+
+    for i in range(1, records + 1):
+
+        invoice_id = f"INV{i:06d}"
+
+        customer_name = fake.name().upper()
+
+        invoice_date = fake.date_between(start_date="-2y", end_date="today").strftime("%d/%m/%Y")
+
+        amount = random.randint(500, 50000)
+
+        source.append({"invoice_id": invoice_id, "customer_name": customer_name, "invoice_date": invoice_date, "amount": amount})
+
+        target_invoice = invoice_id
+        target_customer = customer_name
+        target_date = invoice_date
+        target_amount = amount
+
+        if random.random() < mismatch_rate:
+
+            mismatch = random.choice(["missing", "amount", "customer", "date"])
+
+            if mismatch == "missing":
+                continue
+
+            elif mismatch == "amount":
+                target_amount += random.randint(100, 1000)
+
+            elif mismatch == "customer":
+                target_customer = fake.name().upper()
+
+            elif mismatch == "date":
+                target_date = fake.date_between(start_date="-2y", end_date="today").strftime("%d/%m/%Y")
+
+        target.append({"invoice_id": target_invoice, "customer_name": target_customer, "invoice_date": target_date, "amount": target_amount})
+
+    source_df = pd.DataFrame(source)
+    target_df = pd.DataFrame(target)
+
+    DATA_DIR.mkdir(exist_ok=True)
+
+    source_df.to_csv(DATA_DIR / "source.csv", index=False)
+
+    target_df.to_csv(DATA_DIR / "target.csv", index=False)
+
+    print(f"Generated {len(source_df)} source records")
+    print(f"Generated {len(target_df)} target records")
+
+
+if __name__ == "__main__":
+
+    import argparse
+
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument("--records", type=int, default=1000, help="Number of source records to generate")
+
+    parser.add_argument("--mismatch-rate", type=float, default=0.05, help="Percentage of mismatched target records")
+
+    args = parser.parse_args()
+
+    generate_dataset(records=args.records, mismatch_rate=args.mismatch_rate)
