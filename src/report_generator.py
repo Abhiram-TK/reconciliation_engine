@@ -1,11 +1,10 @@
 import pandas as pd
-from pathlib import Path
+
+from config import REPORTS_DIR
 
 def generate_reports(results):
 
-    BASE_DIR = Path(__file__).resolve().parent.parent
-
-    REPORTS_DIR = BASE_DIR / "reports"
+    REPORTS_DIR.mkdir(parents=True, exist_ok=True)
 
     matched_records = []
     mismatched_records = []

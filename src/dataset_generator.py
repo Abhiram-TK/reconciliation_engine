@@ -1,14 +1,11 @@
-from pathlib import Path
 import random
-
 import pandas as pd
+
 from faker import Faker
 
+from config import (SOURCE_FILE, TARGET_FILE, DATASET_SIZE, MISMATCH_RATE)
+
 fake = Faker("en_IN")
-
-BASE_DIR = Path(__file__).resolve().parent.parent
-DATA_DIR = BASE_DIR / "data"
-
 
 def generate_dataset(records: int = 1000, mismatch_rate: float = 0.05):
 
@@ -53,11 +50,11 @@ def generate_dataset(records: int = 1000, mismatch_rate: float = 0.05):
     source_df = pd.DataFrame(source)
     target_df = pd.DataFrame(target)
 
-    DATA_DIR.mkdir(exist_ok=True)
+    SOURCE_FILE.parent.mkdir(parents=True, exist_ok=True)
 
-    source_df.to_csv(DATA_DIR / "source.csv", index=False)
+    source_df.to_csv(SOURCE_FILE, index=False)
 
-    target_df.to_csv(DATA_DIR / "target.csv", index=False)
+    target_df.to_csv(TARGET_FILE, index=False)
 
     print(f"Generated {len(source_df)} source records")
     print(f"Generated {len(target_df)} target records")
@@ -69,10 +66,10 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("--records", type=int, default=1000, help="Number of source records to generate")
+    parser.add_argument("--records", type=int, default=None, help="Number of source records to generate")
 
-    parser.add_argument("--mismatch-rate", type=float, default=0.05, help="Percentage of mismatched target records")
+    parser.add_argument("--mismatch-rate", type=float, default=None, help="Percentage of mismatched target records")
 
     args = parser.parse_args()
 
-    generate_dataset(records=args.records, mismatch_rate=args.mismatch_rate)
+    generate_dataset(records=args.records or DATASET_SIZE, mismatch_rate=args.mismatch_rate or MISMATCH_RATE)

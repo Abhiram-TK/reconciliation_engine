@@ -1,7 +1,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 
-from pathlib import Path
+from config import REPORTS_DIR, CHARTS_DIR
 
 def generate_summary(comparison_df):
 
@@ -13,13 +13,13 @@ def generate_summary(comparison_df):
 
 def save_summary(summary_df):
 
-    BASE_DIR = Path(__file__).resolve().parent.parent
-
-    REPORTS_DIR = BASE_DIR / "reports"
+    REPORTS_DIR.mkdir(parents=True, exist_ok=True)
 
     summary_df.to_csv(REPORTS_DIR / "summary.csv", index=False)
 
 def generate_chart(summary_df):
+
+    CHARTS_DIR.mkdir(parents=True, exist_ok=True)
 
     plt.figure(figsize=(8,5))
 
@@ -30,10 +30,8 @@ def generate_chart(summary_df):
     plt.xlabel("Status")
     plt.ylabel("Record Count")
 
-    BASE_DIR = Path(__file__).resolve().parent.parent
+    plt.tight_layout()
 
-    REPORTS_DIR = BASE_DIR / "reports"
-
-    plt.savefig(REPORTS_DIR / "reconciliation_summary.png")
+    plt.savefig(CHARTS_DIR / "reconciliation_summary.png")
 
     plt.close()
