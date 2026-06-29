@@ -1,8 +1,27 @@
-venv/
-__pycache__/
-*.pyc
-.ipynb_checkpoints/
+# Environemnt
 .env
-data/source.csv
-data/target.csv
+
+# Virtual Environment
+venv/
+.venv/
+
+# Python
+__pycache__/
+*.py[cod]
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Generated Reports
 reports/
+
+# IDE
+.vscode/
+.idea/
+
+# Test Cache
+.pytest_cache/
+
+# Operating System
+.DS_Store
+Thumbs.db
