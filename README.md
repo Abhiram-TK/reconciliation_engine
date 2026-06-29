@@ -1,23 +1,12 @@
 # Reconciliation Automation Engine
 
-A backend data processing project that automates reconciliation between two transaction datasets using an ETL (Extract, Transform, Load) pipeline.
+## Overview
 
-The system identifies missing, duplicate, and mismatched transactions and generates reconciliation reports for analysis.
+Reconciliation Automation Engine is a Python-based ETL application that automates reconciliation between two transaction datasets.
 
----
+The project loads source and target datasets, normalizes inconsistent values, compares records, detects discrepancies, performs fuzzy customer matching using RapidFuzz, and generates reconciliation reports with summary analytics and visualization.
 
-## Features
-
-- CSV Data Import
-- Data Normalization
-- Transaction Matching
-- Amount Tolerance Matching
-- Duplicate Detection
-- Missing Record Detection
-- Fuzzy Customer Name Matching
-- Discrepancy Report Generation
-- Summary Report Generation
-- Development Dataset Generation using Faker
+The application is designed as a batch-processing backend service and is prepared for Docker containerization.
 
 ---
 
@@ -29,25 +18,35 @@ The system identifies missing, duplicate, and mismatched transactions and genera
 - Faker
 - Matplotlib
 - OpenPyXL
+- Jupyter Notebook
 
 ---
 
-## ETL Workflow
+## ETL Pipeline
 
 ```text
-Input CSV Files
-        ↓
-Extract
-        ↓
-Normalize
-        ↓
+Generate Dataset
+        │
+        ▼
+Load CSV Files
+        │
+        ▼
+Normalize Data
+        │
+        ▼
 Compare Records
-        ↓
-Detect Discrepancies
-        ↓
+        │
+        ▼
+Detect Mismatches
+        │
+        ▼
 Generate Reports
-        ↓
-Visualization
+        │
+        ▼
+Generate Summary
+        │
+        ▼
+Generate Charts
 ```
 
 ---
@@ -55,98 +54,153 @@ Visualization
 ## Matching Workflow
 
 ```text
-Transaction A
+Source Record
         │
-Transaction B
-        │
-────────┼────────
         ▼
 Exact Match
         │
         ▼
-Amount Tolerance Check
+Amount Comparison
         │
         ▼
-Fuzzy Customer Match
+RapidFuzz Name Similarity
         │
         ▼
 Duplicate Detection
         │
         ▼
-Mismatch Report
+Missing Record Detection
+        │
+        ▼
+Final Reconciliation Status
 ```
+
+---
+
+## Features
+
+### ETL Processing
+
+- CSV dataset loading
+- Data normalization
+- Exact transaction matching
+- Amount comparison
+- Missing record detection
+- Mismatch detection
+- Duplicate detection
+- RapidFuzz customer matching
+
+### Dataset Generation
+
+- Synthetic transaction generation using Faker
+- Configurable dataset size
+- Configurable mismatch rate
+
+### Reporting
+
+- Matched transactions report
+- Missing transactions report
+- Mismatched transactions report
+- Summary report
+- Analytics chart generation
+
+### Configuration
+
+- Environment-based configuration
+- Configurable dataset paths
+- Configurable reports directory
+- Configurable dataset generation
 
 ---
 
 ## Project Structure
 
 ```text
-project/
+reconciliation_engine/
+
 ├── data/
-│   ├── raw/
-│   └── processed/
+│   ├── source.csv
+│   └── target.csv
+│
+├── docs/
 │
 ├── notebooks/
+│   └── reconciliation_demo.ipynb
 │
 ├── reports/
+│   ├── charts/
+│   ├── matched.csv
+│   ├── mismatched.csv
+│   ├── missing.csv
+│   └── summary.csv
 │
 ├── src/
-│   ├── analytics/
-│   ├── comparison/
-│   ├── matching/
-│   ├── reporting/
-│   └── utils/
+│   ├── analytics.py
+│   ├── compare_data.py
+│   ├── config.py
+│   ├── dataset_generator.py
+│   ├── fuzzy_matcher.py
+│   ├── load_data.py
+│   ├── main.py
+│   ├── mismatch_detector.py
+│   ├── normalize_data.py
+│   └── report_generator.py
 │
-├── tests/
-│
+├── .env.example
 ├── requirements.txt
 └── README.md
 ```
 
 ---
 
-## Input
+## Configuration
 
-The reconciliation engine compares two transaction datasets.
+Project configuration is managed through environment variables.
 
-Typical fields include:
+Example:
 
-- Transaction ID
-- Customer Name
-- Amount
-- Transaction Date
+```env
+SOURCE_FILE=data/source.csv
+TARGET_FILE=data/target.csv
 
----
+REPORTS_DIR=reports
+CHARTS_DIR=reports/charts
 
-## Output
+DATASET_SIZE=1000
+MISMATCH_RATE=0.05
+```
 
-The engine generates reports including:
-
-- Exact Matches
-- Missing Records
-- Duplicate Records
-- Amount Mismatches
-- Customer Name Mismatches
-- Reconciliation Summary
-
-Generated reports are stored in the `reports/` directory.
+Copy `.env.example` to `.env` before running the application.
 
 ---
 
-## Development Data
+## Running the Project
 
-The project uses Faker to generate realistic transaction datasets for development and testing.
+### Clone Repository
 
-Generated data includes:
+```bash
+git clone <https://github.com/Abhiram-TK/reconciliation_engine>
+```
 
-- Customer Names
-- Transaction IDs
-- Transaction Dates
-- Transaction Amounts
+### Navigate into Project
 
----
+```bash
+cd reconciliation_engine
+```
 
-## Run Locally
+### Create Virtual Environment
+
+```bash
+python -m venv venv
+```
+
+### Activate Virtual Environment
+
+Windows
+
+```bash
+venv\Scripts\activate
+```
 
 ### Install Dependencies
 
@@ -154,23 +208,130 @@ Generated data includes:
 pip install -r requirements.txt
 ```
 
-### Execute Reconciliation
+### Configure Environment
+
+Copy:
+
+```text
+.env.example
+```
+
+to
+
+```text
+.env
+```
+
+Modify configuration if required.
+
+---
+
+## Generate Development Dataset
+
+Generate synthetic datasets using Faker.
+
+```bash
+python src/dataset_generator.py
+```
+
+Configuration is controlled through:
+
+- DATASET_SIZE
+- MISMATCH_RATE
+
+---
+
+## Run Reconciliation
 
 ```bash
 python src/main.py
 ```
 
+The application automatically:
+
+- Loads datasets
+- Normalizes records
+- Compares transactions
+- Detects mismatches
+- Generates reports
+- Generates analytics
+- Creates visualization charts
+
 ---
 
-## Jupyter Notebook
+## Generated Reports
 
-A demonstration notebook is available under:
+Running the pipeline produces:
 
 ```text
-notebooks/
+reports/
+
+matched.csv
+
+mismatched.csv
+
+missing.csv
+
+summary.csv
+
+charts/
+    reconciliation_summary.png
 ```
 
-The notebook illustrates the reconciliation workflow, generated reports, and summary statistics.
+---
+
+## Demonstration Notebook
+
+The project includes a Jupyter notebook demonstrating the complete reconciliation workflow.
+
+Location:
+
+```text
+notebooks/reconciliation_demo.ipynb
+```
+
+The notebook demonstrates:
+
+- Dataset loading
+- Data normalization
+- Record comparison
+- RapidFuzz similarity matching
+- Mismatch detection
+- Report generation
+- Analytics
+- Visualization
+
+---
+
+## Sample Workflow
+
+```text
+Dataset Generator
+        │
+        ▼
+source.csv / target.csv
+        │
+        ▼
+main.py
+        │
+        ▼
+Normalize Data
+        │
+        ▼
+Compare Records
+        │
+        ▼
+Detect Mismatches
+        │
+        ▼
+Generate Reports
+        │
+        ▼
+Generate Analytics
+        │
+        ▼
+Visualization
+```
 
 ---
 
@@ -179,11 +340,33 @@ The notebook illustrates the reconciliation workflow, generated reports, and sum
 This project demonstrates:
 
 - ETL Pipeline Design
+- Batch Processing
+- Configurable Application Design
 - Data Cleaning
 - Data Normalization
-- Record Matching
+- Exact Record Matching
 - Fuzzy String Matching
-- Data Validation
-- Report Generation
-- Data Analysis
-- Backend Automation
+- Automated Report Generation
+- Data Visualization
+- Environment-Based Configuration
+- Reusable Python Modules
+
+---
+
+## Current Status
+
+Implemented
+
+- ETL reconciliation pipeline
+- Configurable environment
+- Dataset generator
+- RapidFuzz matching
+- Report generation
+- Analytics
+- Visualization
+- Demonstration notebook
+
+Next Phase
+
+- Docker containerization
+- Docker Compose execution
