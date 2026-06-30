@@ -118,37 +118,59 @@ Final Reconciliation Status
 ```text
 reconciliation_engine/
 
-├── data/
+├── data
 │   ├── source.csv
 │   └── target.csv
 │
-├── docs/
+├── docs
+│   ├── reconciliation_chart.png
+│   └── summary.png
 │
-├── notebooks/
+├── notebooks
 │   └── reconciliation_demo.ipynb
 │
-├── reports/
-│   ├── charts/
+├── reports
+│   ├── charts
+│   │   └── reconciliation_summary.png
 │   ├── matched.csv
 │   ├── mismatched.csv
 │   ├── missing.csv
 │   └── summary.csv
 │
-├── src/
-│   ├── analytics.py
-│   ├── compare_data.py
-│   ├── config.py
-│   ├── dataset_generator.py
-│   ├── fuzzy_matcher.py
-│   ├── load_data.py
-│   ├── main.py
-│   ├── mismatch_detector.py
-│   ├── normalize_data.py
-│   └── report_generator.py
+├── src
+│   ├── core
+│   │   └── config.py
+│   │
+│   ├── processing
+│   │   ├── compare_data.py
+│   │   ├── fuzzy_matcher.py
+│   │   ├── load_data.py
+│   │   ├── mismatch_detector.py
+│   │   └── normalize_data.py
+│   │
+│   ├── reporting
+│   │   ├── analytics.py
+│   │   └── report_generator.py
+│   │
+│   ├── utils
+│   │   └── dataset_generator.py
+│   │
+│   └── main.py
 │
+├── tests
+│   ├── test_analytics.py
+│   ├── test_compare.py
+│   ├── test_fuzzy_match.py
+│   ├── test_load.py
+│   ├── test_mismatch.py
+│   ├── test_normalize.py
+│   └── test_reports.py
+│
+├── .env
 ├── .env.example
-├── requirements.txt
-└── README.md
+├── .gitignore
+├── README.md
+└── requirements.txt
 ```
 
 ---
