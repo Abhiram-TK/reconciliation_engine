@@ -1,17 +1,17 @@
 import pandas as pd
 
-from load_data import load_source_file
-from load_data import load_target_file
+from processing.load_data import load_source_file
+from processing.load_data import load_target_file
 
-from compare_data import compare_records
+from processing.compare_data import compare_records
 
-from analytics import generate_summary
-from analytics import save_summary
-from analytics import generate_chart
+from reporting.analytics import generate_summary
+from reporting.analytics import save_summary
+from reporting.analytics import generate_chart
 
-from normalize_data import normalize_names
-from normalize_data import normalize_dates
-from normalize_data import normalize_amounts
+from processing.normalize_data import normalize_names
+from processing.normalize_data import normalize_dates
+from processing.normalize_data import normalize_amounts
 
 source_df = load_source_file()
 target_df = load_target_file()

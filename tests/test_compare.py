@@ -1,10 +1,8 @@
-from load_data import (load_source_file, load_target_file)
+from processing.load_data import (load_source_file, load_target_file)
 
-from normalize_data import (normalize_names, normalize_dates, normalize_amounts)
+from processing.normalize_data import (normalize_names, normalize_dates, normalize_amounts)
 
-from compare_data import compare_records
-
-from report_generator import generate_reports
+from processing.compare_data import compare_records
 
 source_df = load_source_file()
 target_df = load_target_file()
@@ -19,6 +17,6 @@ target_df = normalize_amounts(target_df)
 
 results = compare_records(source_df, target_df)
 
-generate_reports(results)
+for result in results:
 
-print("Reports generated successfully.")
+    print(result)

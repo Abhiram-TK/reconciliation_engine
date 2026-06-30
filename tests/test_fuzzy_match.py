@@ -1,4 +1,4 @@
-from fuzzy_matcher import (calculate_similarity, is_probable_match)
+from processing.fuzzy_matcher import (calculate_similarity, is_probable_match)
 
 name_1 = "abhiram tk"
 name_2 = "vivek nair"
