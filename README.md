@@ -1,12 +1,49 @@
-# Reconciliation Automation Engine
+# Project 4 - Reconciliation Automation Engine
 
-## Overview
+> Portfolio Project 4
 
-Reconciliation Automation Engine is a Python-based ETL application that automates reconciliation between two transaction datasets.
+Financial reconciliation service of the Backend Transaction Ecosystem.
 
-The project loads source and target datasets, normalizes inconsistent values, compares records, detects discrepancies, performs fuzzy customer matching using RapidFuzz, and generates reconciliation reports with summary analytics and visualization.
+## Project Overview
 
-The application is designed as a batch-processing backend service and is prepared for Docker containerization.
+The Reconciliation Automation Engine compares sales and inventory records, detects discrepancies and produces reconciliation reports.
+
+It is the final service in the current backend ecosystem.
+
+---
+
+## Ecosystem Position
+
+Startup Dependency
+
+```text
+      Authentication Service
+                ↓
+    Inventory Dispatch System
+                ↓
+    Sales Transaction Service
+                ↓
+  Reconciliation Automation Engine
+```
+
+Responsibilities
+
+- ETL
+- Data normalization
+- Record matching
+- Discrepancy detection
+- Report generation
+
+Consumes
+
+- Sales Transaction Service
+- Inventory Dispatch System
+
+Produces
+
+- Matching reports
+- Discrepancy reports
+- Reconciliation summaries
 
 ---
 
@@ -73,6 +110,30 @@ Missing Record Detection
         │
         ▼
 Final Reconciliation Status
+```
+
+---
+
+## System Architecture
+
+```text
+Authentication Service
+        │
+        ▼
+Inventory Dispatch System
+        │
+        ▼
+Sales Transaction Service
+        │
+        ▼
+Reconciliation Automation Engine
+
+Outputs
+
+- Reports
+- CSV
+- Excel
+- Matching Results
 ```
 
 ---
@@ -201,7 +262,7 @@ Copy `.env.example` to `.env` before running the application.
 ### Clone Repository
 
 ```bash
-git clone <https://github.com/Abhiram-TK/reconciliation_engine>
+git clone https://github.com/Abhiram-TK/reconciliation_engine.git
 ```
 
 ### Navigate into Project
@@ -354,6 +415,15 @@ Generate Analytics
         ▼
 Visualization
 ```
+
+---
+
+## Related Projects
+
+| Service                   | Relationship            |
+| ------------------------- | ----------------------- |
+| Inventory Dispatch System | Inventory data source   |
+| Sales Transaction Service | Transaction data source |
 
 ---
 
