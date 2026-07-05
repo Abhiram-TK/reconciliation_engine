@@ -10,6 +10,10 @@ The Reconciliation Automation Engine compares sales and inventory records, detec
 
 It is the final service in the current backend ecosystem.
 
+The Reconciliation Automation Engine does not own transactional or inventory data.
+
+Its responsibility is to analyze, compare and report on data produced by upstream services while preserving source-system ownership.
+
 ---
 
 ## Ecosystem Position
@@ -138,6 +142,22 @@ Outputs
 
 ---
 
+## Service Ownership
+
+The Reconciliation Automation Engine is the authoritative owner of:
+
+- Reconciliation Reports
+- Matching Results
+- Summary Reports
+- Analytics Output
+- Visualization Charts
+
+This service consumes data from upstream services but never modifies their source data or databases.
+
+Source systems remain the owners of their respective business entities.
+
+---
+
 ## Features
 
 ### ETL Processing
@@ -164,6 +184,12 @@ Outputs
 - Mismatched transactions report
 - Summary report
 - Analytics chart generation
+
+### Outputs
+
+- CSV reconciliation reports
+- Summary reports
+- Analytics charts
 
 ### Configuration
 
@@ -342,6 +368,30 @@ The application automatically:
 
 ---
 
+### Execution Flow
+
+Running the application performs the following sequence automatically:
+
+```text
+       Load Source Dataset
+                ↓
+       Load Target Dataset
+                ↓
+          Normalize Data
+                ↓
+         Compare Records
+                ↓
+        Detect Mismatches
+                ↓
+         Generate Reports
+                ↓
+        Generate Summary
+                ↓
+         Generate Charts
+```
+
+---
+
 ## Generated Reports
 
 Running the pipeline produces:
@@ -420,10 +470,11 @@ Visualization
 
 ## Related Projects
 
-| Service                   | Relationship            |
-| ------------------------- | ----------------------- |
-| Inventory Dispatch System | Inventory data source   |
-| Sales Transaction Service | Transaction data source |
+| Service                   | Relationship                                          |
+| ------------------------- | ----------------------------------------------------- |
+| Authentication Service    | Upstream authentication provider within the ecosystem |
+| Inventory Dispatch System | Inventory data source                                 |
+| Sales Transaction Service | Transaction data source                               |
 
 ---
 
@@ -442,6 +493,8 @@ This project demonstrates:
 - Data Visualization
 - Environment-Based Configuration
 - Reusable Python Modules
+- Modular ETL Pipeline
+- Configuration-driven Processing
 
 ---
 
