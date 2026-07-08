@@ -3,7 +3,7 @@ import pandas as pd
 
 from faker import Faker
 
-from core.config import (SOURCE_FILE, TARGET_FILE, DATASET_SIZE, MISMATCH_RATE)
+from app.core.config import (SOURCE_FILE, TARGET_FILE, DATASET_SIZE, MISMATCH_RATE)
 
 fake = Faker("en_IN")
 

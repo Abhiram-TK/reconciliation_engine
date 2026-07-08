@@ -1,6 +1,6 @@
 import pandas as pd
 
-from core.config import REPORTS_DIR
+from app.core.config import REPORTS_DIR
 
 def generate_reports(results):
 

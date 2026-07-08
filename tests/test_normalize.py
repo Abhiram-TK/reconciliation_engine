@@ -1,6 +1,6 @@
-from processing.load_data import (load_source_file, load_target_file)
+from app.clients.load_data import (load_source_file, load_target_file)
 
-from processing.normalize_data import (normalize_names, normalize_dates,normalize_amounts)
+from app.services.normalization_service import (normalize_names, normalize_dates,normalize_amounts)
 
 source_df = load_source_file()
 

@@ -1,8 +1,8 @@
-from processing.load_data import (load_source_file, load_target_file)
+from app.clients.load_data import (load_source_file, load_target_file)
 
-from processing.normalize_data import (normalize_names, normalize_dates, normalize_amounts)
+from app.services.normalization_service import (normalize_names, normalize_dates, normalize_amounts)
 
-from processing.mismatch_detector import (detect_mismatches)
+from app.services.mismatch_service import (detect_mismatches)
 
 source_df = load_source_file()
 target_df = load_target_file()

@@ -1,7 +1,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 
-from core.config import REPORTS_DIR, CHARTS_DIR
+from app.core.config import REPORTS_DIR, CHARTS_DIR
 
 def generate_summary(comparison_df):
 

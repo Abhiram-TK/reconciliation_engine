@@ -1,10 +1,10 @@
-from processing.load_data import (load_source_file, load_target_file)
+from app.clients.load_data import (load_source_file, load_target_file)
 
-from processing.normalize_data import (normalize_names, normalize_dates, normalize_amounts)
+from app.services.normalization_service import (normalize_names, normalize_dates, normalize_amounts)
 
-from processing.compare_data import compare_records
+from app.services.compare_service import compare_records
 
-from reporting.report_generator import generate_reports
+from app.reporting.report_generator import generate_reports
 
 source_df = load_source_file()
 target_df = load_target_file()

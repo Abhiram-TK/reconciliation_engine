@@ -1,5 +1,5 @@
 import pandas as pd
-from core.config import SOURCE_FILE, TARGET_FILE
+from app.core.config import SOURCE_FILE, TARGET_FILE
 
 def load_source_file():
 

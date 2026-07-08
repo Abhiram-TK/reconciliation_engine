@@ -2,12 +2,12 @@ from pathlib import Path
 
 import pandas as pd
 
-from processing.load_data import load_source_file, load_target_file
-from processing.normalize_data import (normalize_names, normalize_dates, normalize_amounts)
-from processing.compare_data import compare_records
-from processing.mismatch_detector import detect_mismatches
-from reporting.report_generator import generate_reports
-from reporting.analytics import (generate_summary, save_summary, generate_chart)
+from app.clients.load_data import load_source_file, load_target_file
+from app.services.normalization_service import (normalize_names, normalize_dates, normalize_amounts)
+from app.services.compare_service import compare_records
+from app.services.mismatch_service import detect_mismatches
+from app.reporting.report_generator import generate_reports
+from app.reporting.analytics import (generate_summary, save_summary, generate_chart)
 
 
 def normalize_dataframe(dataframe: pd.DataFrame) -> pd.DataFrame:
