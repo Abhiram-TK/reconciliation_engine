@@ -1,6 +1,7 @@
 import pandas as pd
 
-from app.clients.load_data import (load_source_file, load_target_file)
+from app.clients.sales_client import SalesClient
+from app.clients.inventory_client import InventoryClient
 
 from app.services.normalization_service import (normalize_names, normalize_dates, normalize_amounts)
 from app.services.compare_service import compare_records
@@ -14,6 +15,9 @@ class ReconciliationService:
  
     def __init__(self):
 
+        self.sales_client = SalesClient()
+        self.inventory_client = InventoryClient()
+
         self.source_df = None
         self.target_df = None
 
@@ -24,8 +28,8 @@ class ReconciliationService:
 
     def retrieve_data(self):
 
-        self.source_df = load_source_file()
-        self.target_df = load_target_file()
+        self.source_df = self.sales_client.get_sales_records()
+        self.target_df = self.inventory_client.get_inventory_records()
 
         return self.source_df, self.target_df
 

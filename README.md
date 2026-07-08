@@ -6,13 +6,48 @@ Financial reconciliation service of the Backend Transaction Ecosystem.
 
 ## Project Overview
 
-The Reconciliation Automation Engine compares sales and inventory records, detects discrepancies and produces reconciliation reports.
+The Reconciliation Automation Engine compares sales and inventory records,
+detects discrepancies, and produces reconciliation reports through a dedicated
+service layer. Data retrieval is delegated to `SalesClient` and
+`InventoryClient`, allowing the reconciliation logic to remain independent of
+the underlying data source. The clients currently read CSV files and can later
+be migrated to HTTP APIs without modifying the reconciliation workflow.
 
 It is the final service in the current backend ecosystem.
 
 The Reconciliation Automation Engine does not own transactional or inventory data.
 
 Its responsibility is to analyze, compare and report on data produced by upstream services while preserving source-system ownership.
+
+---
+
+## Adapter Pattern
+
+The application uses dedicated client adapters to isolate data access from the
+reconciliation pipeline.
+
+```text
+Current
+
+SalesClient
+InventoryClient
+        │
+        ▼
+   CSV Files
+
+Future
+
+SalesClient
+InventoryClient
+        │
+        ▼
+ REST APIs / HTTP Services
+```
+
+Because the application communicates only with `SalesClient` and
+`InventoryClient`, replacing CSV files with upstream service APIs requires
+changes only inside the client layer. The reconciliation service and business
+logic remain unchanged.
 
 ---
 
@@ -66,28 +101,32 @@ Produces
 ## ETL Pipeline
 
 ```text
-Generate Dataset
-        │
-        ▼
-Load CSV Files
-        │
-        ▼
-Normalize Data
-        │
-        ▼
-Compare Records
-        │
-        ▼
-Detect Mismatches
-        │
-        ▼
-Generate Reports
-        │
-        ▼
-Generate Summary
-        │
-        ▼
-Generate Charts
+Sales CSV              Inventory CSV
+     │                      │
+     ▼                      ▼
+SalesClient        InventoryClient
+      \                   /
+       \                 /
+        ▼               ▼
+      ReconciliationService
+               │
+               ▼
+         Normalize Data
+               │
+               ▼
+        Compare Records
+               │
+               ▼
+        Detect Mismatches
+               │
+               ▼
+       Generate Reports
+               │
+               ▼
+       Generate Analytics
+               │
+               ▼
+         Visualization
 ```
 
 ---
@@ -118,27 +157,80 @@ Final Reconciliation Status
 
 ---
 
-## System Architecture
+## Architecture
+
+The Reconciliation Automation Engine follows a layered architecture that separates
+data access from reconciliation logic.
 
 ```text
-Authentication Service
-        │
-        ▼
-Inventory Dispatch System
-        │
-        ▼
-Sales Transaction Service
-        │
-        ▼
-Reconciliation Automation Engine
+                  Reconciliation Automation Engine
 
-Outputs
-
-- Reports
-- CSV
-- Excel
-- Matching Results
+                +------------------------------+
+                |            main.py           |
+                +--------------+---------------+
+                               |
+                               v
+                +------------------------------+
+                |    ReconciliationService     |
+                +--------------+---------------+
+                               |
+               +---------------+---------------+
+               |                               |
+               v                               v
+      +-------------------+          +----------------------+
+      |    SalesClient    |          |   InventoryClient    |
+      +---------+---------+          +----------+-----------+
+                |                               |
+                v                               v
+        sales records                   inventory records
+                \                               /
+                 \                             /
+                  +---------------------------+
+                  | Normalization Services    |
+                  +---------------------------+
+                              |
+                              v
+                  +---------------------------+
+                  |   Compare Records         |
+                  +---------------------------+
+                              |
+                              v
+                  +---------------------------+
+                  | Detect Mismatches         |
+                  +---------------------------+
+                              |
+                              v
+                  +---------------------------+
+                  | Report Generator          |
+                  +---------------------------+
+                              |
+                              v
+                  +---------------------------+
+                  | Analytics & Charts        |
+                  +---------------------------+
 ```
+
+### Architectural Layers
+
+- **Application Layer**
+  - `main.py`
+
+- **Service Layer**
+  - `ReconciliationService`
+
+- **Client Layer**
+  - `SalesClient`
+  - `InventoryClient`
+
+- **Business Logic**
+  - Normalization
+  - Record Comparison
+  - Mismatch Detection
+
+- **Reporting**
+  - CSV Reports
+  - Summary Analytics
+  - Charts
 
 ---
 

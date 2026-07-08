@@ -1,11 +1,15 @@
-from app.clients.load_data import (load_source_file, load_target_file)
+from app.clients.sales_client import SalesClient
+from app.clients.inventory_client import InventoryClient
 
 from app.services.normalization_service import (normalize_names, normalize_dates, normalize_amounts)
 
 from app.services.mismatch_service import (detect_mismatches)
 
-source_df = load_source_file()
-target_df = load_target_file()
+sales_client = SalesClient()
+inventory_client = InventoryClient()
+
+source_df = sales_client.get_sales_records()
+target_df = inventory_client.get_inventory_records()
 
 source_df = normalize_names(source_df)
 source_df = normalize_dates(source_df)

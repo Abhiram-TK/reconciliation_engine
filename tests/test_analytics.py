@@ -1,20 +1,19 @@
 import pandas as pd
 
-from app.clients.load_data import load_source_file
-from app.clients.load_data import load_target_file
+from app.clients.sales_client import SalesClient 
+from app.clients.inventory_client import InventoryClient
 
 from app.services.compare_service import compare_records
 
-from app.reporting.analytics import generate_summary
-from app.reporting.analytics import save_summary
-from app.reporting.analytics import generate_chart
+from app.reporting.analytics import (generate_summary, save_summary, generate_chart)
 
-from app.services.normalization_service import normalize_names
-from app.services.normalization_service import normalize_dates
-from app.services.normalization_service import normalize_amounts
+from app.services.normalization_service import (normalize_names, normalize_dates, normalize_amounts)
 
-source_df = load_source_file()
-target_df = load_target_file()
+sales_client = SalesClient()
+inventory_client = InventoryClient()
+
+source_df = sales_client.get_sales_records()
+target_df = inventory_client.get_inventory_records()
 
 source_df = normalize_names(source_df)
 target_df = normalize_names(target_df)
