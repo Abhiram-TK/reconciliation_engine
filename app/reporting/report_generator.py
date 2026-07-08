@@ -12,15 +12,17 @@ def generate_reports(results):
 
     for result in results:
 
-        if result["status"] == "MATCHED":
+        status = result.get("status")
+
+        if status == "MATCHED":
 
             matched_records.append(result)
 
-        elif result["status"] == "MISSING":
+        elif status == "MISSING":
 
             missing_records.append(result)
 
-        elif result["status"] == "MISMATCHED":
+        elif status == "MISMATCHED":
 
             mismatched_records.append(result)
 
