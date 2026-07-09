@@ -3,7 +3,7 @@ import pandas as pd
 
 from faker import Faker
 
-from app.core.config import (SOURCE_FILE, TARGET_FILE, DATASET_SIZE, MISMATCH_RATE)
+from app.core.config import settings
 
 fake = Faker("en_IN")
 
@@ -50,11 +50,11 @@ def generate_dataset(records: int = 1000, mismatch_rate: float = 0.05):
     source_df = pd.DataFrame(source)
     target_df = pd.DataFrame(target)
 
-    SOURCE_FILE.parent.mkdir(parents=True, exist_ok=True)
+    settings.source_file.parent.mkdir(parents=True, exist_ok=True)
 
-    source_df.to_csv(SOURCE_FILE, index=False)
+    source_df.to_csv(settings.source_file, index=False)
 
-    target_df.to_csv(TARGET_FILE, index=False)
+    target_df.to_csv(settings.target_file, index=False)
 
     print(f"Generated {len(source_df)} source records")
     print(f"Generated {len(target_df)} target records")
@@ -72,4 +72,4 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    generate_dataset(records=args.records or DATASET_SIZE, mismatch_rate=args.mismatch_rate or MISMATCH_RATE)
+    generate_dataset(records=args.records or settings.dataset_size, mismatch_rate=args.mismatch_rate or settings.mismatch_rate)

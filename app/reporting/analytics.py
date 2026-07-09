@@ -1,7 +1,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 
-from app.core.config import REPORTS_DIR, CHARTS_DIR
+from app.core.config import settings
 
 def generate_summary(comparison_df):
 
@@ -13,13 +13,13 @@ def generate_summary(comparison_df):
 
 def save_summary(summary_df):
 
-    REPORTS_DIR.mkdir(parents=True, exist_ok=True)
+    settings.reports_dir.mkdir(parents=True, exist_ok=True)
 
-    summary_df.to_csv(REPORTS_DIR / "summary.csv", index=False)
+    summary_df.to_csv(settings.reports_dir / "summary.csv", index=False)
 
 def generate_chart(summary_df):
 
-    CHARTS_DIR.mkdir(parents=True, exist_ok=True)
+    settings.charts_dir.mkdir(parents=True, exist_ok=True)
 
     plt.figure(figsize=(8,5))
 
@@ -32,6 +32,6 @@ def generate_chart(summary_df):
 
     plt.tight_layout()
 
-    plt.savefig(CHARTS_DIR / "reconciliation_summary.png")
+    plt.savefig(settings.charts_dir / "reconciliation_summary.png")
 
     plt.close()

@@ -1,10 +1,10 @@
 import pandas as pd
 
-from app.core.config import REPORTS_DIR
+from app.core.config import settings
 
 def generate_reports(results):
 
-    REPORTS_DIR.mkdir(parents=True, exist_ok=True)
+    settings.reports_dir.mkdir(parents=True, exist_ok=True)
 
     matched_records = []
     mismatched_records = []
@@ -30,6 +30,6 @@ def generate_reports(results):
     mismatched_df = pd.DataFrame(mismatched_records)
     missing_df = pd.DataFrame(missing_records)
 
-    matched_df.to_csv(REPORTS_DIR / "matched.csv", index=False)
-    mismatched_df.to_csv(REPORTS_DIR / "mismatched.csv", index=False)
-    missing_df.to_csv(REPORTS_DIR / "missing.csv", index=False)
+    matched_df.to_csv(settings.reports_dir / "matched.csv", index=False)
+    mismatched_df.to_csv(settings.reports_dir / "mismatched.csv", index=False)
+    missing_df.to_csv(settings.reports_dir / "missing.csv", index=False)

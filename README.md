@@ -356,9 +356,39 @@ reconciliation_engine/
 
 ## Configuration
 
-Project configuration is managed through environment variables.
+Runtime configuration is loaded from `.env` into a single `Settings` object.
+
+```text
+  .env
+    │
+    ▼
+Settings
+    │
+    ├── source_file
+    ├── target_file
+    ├── reports_dir
+    ├── charts_dir
+    ├── dataset_size
+    └── mismatch_rate
+```
+
+Application components consume configuration through the shared `settings`
+instance instead of importing individual module-level constants.
 
 Example:
+
+```python
+from app.core.config import settings
+
+settings.source_file
+settings.target_file
+settings.reports_dir
+settings.charts_dir
+settings.dataset_size
+settings.mismatch_rate
+```
+
+Example `.env`:
 
 ```env
 SOURCE_FILE=data/source.csv

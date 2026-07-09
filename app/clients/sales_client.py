@@ -1,9 +1,9 @@
 import pandas as pd
 
-from app.core.config import SOURCE_FILE
+from app.core.config import settings
 
 class SalesClient:
 
     def get_sales_records(self) -> pd.DataFrame:
 
-        return pd.read_csv(SOURCE_FILE)
+        return pd.read_csv(settings.source_file)
