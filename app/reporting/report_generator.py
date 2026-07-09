@@ -2,34 +2,36 @@ import pandas as pd
 
 from app.core.config import settings
 
-def generate_reports(results):
+class ReportGenerator:
 
-    settings.reports_dir.mkdir(parents=True, exist_ok=True)
+    def generate_reports(self, results) -> None:
 
-    matched_records = []
-    mismatched_records = []
-    missing_records = []
+        settings.reports_dir.mkdir(parents=True, exist_ok=True)
 
-    for result in results:
+        matched_records = []
+        mismatched_records = []
+        missing_records = []
 
-        status = result.get("status")
+        for result in results:
 
-        if status == "MATCHED":
+            status = result.get("status")
 
-            matched_records.append(result)
+            if status == "MATCHED":
 
-        elif status == "MISSING":
+                matched_records.append(result)
 
-            missing_records.append(result)
+            elif status == "MISMATCHED":
 
-        elif status == "MISMATCHED":
+                mismatched_records.append(result)
 
-            mismatched_records.append(result)
+            elif status == "MISSING":
 
-    matched_df = pd.DataFrame(matched_records)
-    mismatched_df = pd.DataFrame(mismatched_records)
-    missing_df = pd.DataFrame(missing_records)
+                missing_records.append(result)
 
-    matched_df.to_csv(settings.reports_dir / "matched.csv", index=False)
-    mismatched_df.to_csv(settings.reports_dir / "mismatched.csv", index=False)
-    missing_df.to_csv(settings.reports_dir / "missing.csv", index=False)
+        matched_df = pd.DataFrame(matched_records)
+        mismatched_df = pd.DataFrame(mismatched_records)
+        missing_df = pd.DataFrame(missing_records)
+
+        matched_df.to_csv(settings.reports_dir / "matched.csv", index=False)
+        mismatched_df.to_csv(settings.reports_dir / "mismatched.csv", index=False)
+        missing_df.to_csv(settings.reports_dir / "missing.csv", index=False)

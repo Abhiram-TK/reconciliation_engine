@@ -1,9 +1,8 @@
-from app.services.reconciliation_service import ReconciliationService
+from app.dependencies.providers import get_reconciliation_service
 
 def main() -> None:
-  
-    service = ReconciliationService()
-
+    
+    service = get_reconciliation_service()
     service.run()
 
 if __name__ == "__main__":
