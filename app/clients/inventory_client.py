@@ -11,14 +11,17 @@ class InventoryClient:
 
         self.base_url = settings.INVENTORY_SERVICE_URL.rstrip("/")
         self.timeout = 10
+        self.auth_token = settings.INVENTORY_SERVICE_TOKEN
 
     def get_inventory_records(self) -> pd.DataFrame:
 
         url = f"{self.base_url}/reservations/reconciliation"
 
+        headers = {"Authorization": f"Bearer {self.auth_token}"}
+
         try:
 
-            response = requests.get(url, timeout=self.timeout)
+            response = requests.get(url, headers=headers, timeout=self.timeout)
 
             response.raise_for_status()
 
@@ -29,6 +32,14 @@ class InventoryClient:
         except requests.exceptions.HTTPError as error:
 
             status_code = error.response.status_code
+
+            if status_code == 401:
+
+                raise RuntimeError("Inventory Dispatch System rejected the JWT") from error
+
+            if status_code == 403:
+
+                raise RuntimeError("Inventory Dispatch System JWT does not have view_reservations permission") from error
 
             raise RuntimeError(f"Inventory Dispatch System returned HTTP {status_code}") from error
 
@@ -68,12 +79,12 @@ class InventoryClient:
 
             if not isinstance(record, dict):
 
-                raise RuntimeError(f"Invalid Inventory reservation record at index {index}")
+                raise RuntimeError("Invalid Inventory reservation record " f"at index {index}")
 
-            missing_fields = required_fields - record.keys()
+            missing_fields = (required_fields - record.keys())
 
             if missing_fields:
 
-                raise RuntimeError("Inventory Dispatch System response is missing " f"required fields: {sorted(missing_fields)}")
+                raise RuntimeError("Inventory Dispatch System response is missing required fields: " f"{sorted(missing_fields)}")
 
         return pd.DataFrame(records)

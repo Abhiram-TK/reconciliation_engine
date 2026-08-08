@@ -1,5 +1,7 @@
 import pandas as pd
 
+from app.core.config import settings
+
 from app.clients.sales_client import SalesClient
 from app.clients.inventory_client import InventoryClient
 
@@ -10,24 +12,24 @@ from app.reporting.report_generator import ReportGenerator
 
 def test_report_generation_pipeline(monkeypatch, tmp_path):
 
+    assert settings.INVENTORY_SERVICE_TOKEN, ("INVENTORY_SERVICE_TOKEN must be configured for authenticated Inventory API access")
+
     sales_client = SalesClient()
     inventory_client = InventoryClient()
 
-    # Retrieve authoritative upstream data.
     source_df = sales_client.get_sales_records()
     target_df = inventory_client.get_inventory_records()
 
     assert isinstance(source_df, pd.DataFrame)
+
     assert isinstance(target_df, pd.DataFrame)
 
     assert not source_df.empty
     assert not target_df.empty
 
-    # Normalize the actual upstream contracts.
     source_df = normalize_dataframe(source_df)
     target_df = normalize_dataframe(target_df)
-
-    # Produce comparison results from normalized upstream data.
+    
     comparison_results = compare_records(source_df, target_df)
 
     assert isinstance(comparison_results, list)
@@ -39,7 +41,6 @@ def test_report_generation_pipeline(monkeypatch, tmp_path):
         assert "transaction_id" in result
         assert "status" in result
 
-    # Redirect report output to pytest's temporary directory.
     reports_dir = tmp_path / "reports"
 
     monkeypatch.setattr("app.reporting.report_generator.settings.reports_dir", reports_dir)

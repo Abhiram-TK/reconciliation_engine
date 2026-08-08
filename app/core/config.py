@@ -10,6 +10,8 @@ class Settings:
 
     INVENTORY_SERVICE_URL = os.getenv("INVENTORY_SERVICE_URL", "http://localhost:8002")
 
+    INVENTORY_SERVICE_TOKEN = os.getenv("INVENTORY_SERVICE_TOKEN")
+
     REPORTS_DIR = os.getenv("REPORTS_DIR", "reports")
 
     CHARTS_DIR = os.getenv("CHARTS_DIR", "reports/charts")

@@ -1,5 +1,7 @@
 import pandas as pd
 
+from app.core.config import settings
+
 from app.clients.sales_client import SalesClient
 from app.clients.inventory_client import InventoryClient
 
@@ -7,17 +9,21 @@ from app.services.normalization_service import normalize_dataframe
 
 SALES_COLUMNS = {"transaction_id",
                  "invoice_number",
-                 "product_id"
+                 "product_id",
                  "quantity",
                  "status",
                  "created_at"}
 
 INVENTORY_COLUMNS = {"transaction_id",
                      "reservation_id"
-                     "batch_id",
-                     "reserved_quantity",
-                     "status",
+                     "batch_id"
+                     "reserved_quantity"
+                     "status"
                      "reserved_at"}
+
+def test_inventory_service_credential_configured():
+
+    assert settings.INVENTORY_SERVICE_TOKEN, ("INVENTORY_SERVICE_TOKEN must be configured for authenticated Inventory API access")
 
 def test_sales_service_load():
 
@@ -45,6 +51,9 @@ def test_sales_service_load():
 
 def test_inventory_service_load():
 
+    # The InventoryClient reads the JWT from settings.INVENTORY_SERVICE_TOKEN and sends it as a Bearer token.
+    assert settings.INVENTORY_SERVICE_TOKEN
+
     inventory_client = InventoryClient()
 
     inventory_df = (inventory_client.get_inventory_records())
@@ -71,6 +80,8 @@ def test_inventory_service_load():
 
 def test_upstream_transaction_linkage():
 
+    assert settings.INVENTORY_SERVICE_TOKEN
+
     sales_client = SalesClient()
     inventory_client = InventoryClient()
 
@@ -84,6 +95,5 @@ def test_upstream_transaction_linkage():
 
     assert sales_transaction_ids
     assert inventory_transaction_ids
-
-    # The common identifier used by the reconciliation layer is transaction_id.
+    
     assert (sales_transaction_ids & inventory_transaction_ids)
