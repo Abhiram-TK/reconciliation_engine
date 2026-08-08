@@ -6,48 +6,55 @@ Financial reconciliation service of the Backend Transaction Ecosystem.
 
 ## Project Overview
 
-The Reconciliation Automation Engine compares sales and inventory records,
-detects discrepancies, and produces reconciliation reports through a dedicated
-service layer. Data retrieval is delegated to `SalesClient` and
-`InventoryClient`, allowing the reconciliation logic to remain independent of
-the underlying data source. The clients currently read CSV files and can later
-be migrated to HTTP APIs without modifying the reconciliation workflow.
+The Reconciliation Automation Engine consumes transaction data from the
+Sales Transaction Service and inventory reservation data from the
+Inventory Dispatch System.
 
-It is the final service in the current backend ecosystem.
+It compares authoritative upstream records, detects discrepancies,
+and produces reconciliation reports through a dedicated service layer.
 
-The Reconciliation Automation Engine does not own transactional or inventory data.
+Data retrieval is delegated to `SalesClient` and `InventoryClient`,
+which isolate upstream HTTP communication from the reconciliation workflow.
 
-Its responsibility is to analyze, compare and report on data produced by upstream services while preserving source-system ownership.
+The Reconciliation Automation Engine does not own transactional or
+inventory data.
+
+Its responsibility is to:
+
+- Retrieve data from upstream services
+- Normalize upstream data representations
+- Compare transaction and inventory records
+- Detect reconciliation discrepancies
+- Generate reports
+- Generate analytics and visualizations
+
+Source systems remain the owners of their respective business entities.
 
 ---
 
 ## Adapter Pattern
 
-The application uses dedicated client adapters to isolate data access from the
-reconciliation pipeline.
+The application uses dedicated client adapters to isolate upstream
+service communication from reconciliation logic.
 
 ```text
-Current
-
-SalesClient
-InventoryClient
-        │
-        ▼
-   CSV Files
-
-Future
-
-SalesClient
-InventoryClient
-        │
-        ▼
- REST APIs / HTTP Services
+Sales Transaction Service
+            │
+            ▼
+       SalesClient
+            │
+            │
+            ▼
+ReconciliationService
+            ▲
+            │
+            │
+    InventoryClient
+            ▲
+            │
+            │
+Inventory Dispatch System
 ```
-
-Because the application communicates only with `SalesClient` and
-`InventoryClient`, replacing CSV files with upstream service APIs requires
-changes only inside the client layer. The reconciliation service and business
-logic remain unchanged.
 
 ---
 
