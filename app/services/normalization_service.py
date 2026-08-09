@@ -70,6 +70,10 @@ def normalize_timestamps(df: pd.DataFrame) -> pd.DataFrame:
 
 def normalize_dataframe(df: pd.DataFrame) -> pd.DataFrame:
 
+    if not isinstance(df, pd.DataFrame):
+        
+        raise TypeError("df must be a pandas DataFrame")
+
     df = df.copy()
 
     df = normalize_transaction_ids(df)
