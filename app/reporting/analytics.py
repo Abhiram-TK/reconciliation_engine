@@ -67,7 +67,7 @@ def save_summary(summary_df: pd.DataFrame, output_dir: Path | None = None) -> Pa
 
     if output_dir is None:
 
-        output_dir = settings.reports_dir
+        output_dir = Path(settings.REPORTS_DIR)
 
     output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -81,7 +81,7 @@ def generate_chart(summary_df: pd.DataFrame, output_dir: Path | None = None) -> 
 
     if output_dir is None:
         
-        output_dir = settings.reports_dir
+        output_dir = Path(settings.CHARTS_DIR)
 
     output_dir.mkdir(parents=True, exist_ok=True)
 

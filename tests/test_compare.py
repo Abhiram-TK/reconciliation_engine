@@ -73,6 +73,57 @@ def test_compare_exact_match():
     assert result["batch_ids"] == [20]
     assert result["reserved_quantities"] == [5]
 
+def test_compare_accepts_actual_inventory_contract():
+
+    sales_df = pd.DataFrame([
+            {
+                "transaction_id": 501,
+                "invoice_number": "INV-2026-000501",
+                "product_id": 50,
+                "quantity": 4,
+                "status": "VALIDATED",
+                "created_at": "2026-08-10T09:00:00Z"
+            }])
+
+    inventory_df = pd.DataFrame([
+            {
+                "transaction_id": 501,
+                "reservation_id": 801,
+                "batch_id": 40,
+                "reserved_quantity": 4,
+                "status": "RESERVED",
+                "reserved_at": "2026-08-10T09:01:00Z"
+            }])
+
+    sales_df = normalize_dataframe(sales_df)
+
+    inventory_df = normalize_dataframe(inventory_df)
+
+    results = compare_records(sales_df, inventory_df)
+
+    assert len(results) == 1
+
+    result = results[0]
+
+    assert result["transaction_id"] == 501
+    assert result["status"] == "MATCHED"
+    assert result["mismatch_type"] is None
+
+    assert result["quantity"] == 4
+    assert result["reserved_quantity"] == 4
+
+    assert result["reservation_count"] == 1
+    assert result["reservation_id"] == 801
+    assert result["batch_id"] == 40
+
+    assert result["reservation_ids"] == [801]
+    assert result["batch_ids"] == [40]
+    assert result["reserved_quantities"] == [4]
+
+    assert result["reservation_statuses"] == ["RESERVED"]
+
+    assert len(result["reservation_timestamps"]) == 1
+
 def test_compare_quantity_mismatch():
 
     sales_df = build_sales_dataframe(transaction_id=102,

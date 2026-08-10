@@ -11,7 +11,7 @@ INVENTORY_REQUIRED_COLUMNS = {"transaction_id",
                               "reservation_id",
                               "batch_id",
                               "reserved_quantity",
-                              "status"
+                              "status",
                               "reserved_at"}
 
 def _validate_columns(dataframe: pd.DataFrame, required_columns: set[str], dataset_name: str) -> None:

@@ -6,6 +6,8 @@ from app.services.compare_service import compare_records
 
 from app.services.mismatch_service import detect_mismatches
 
+from app.services.fuzzy_match_service import fuzzy_match_field
+
 from app.reporting.analytics import (generate_summary, save_summary, generate_chart)
 
 class ReconciliationService:
@@ -24,11 +26,14 @@ class ReconciliationService:
                                   "status",
                                   "reserved_at"}
 
-    def __init__(self, sales_client, inventory_client, report_generator):
+    def __init__(self, sales_client, inventory_client, report_generator, fuzzy_match_field_name=None, fuzzy_match_threshold=90.0):
 
         self.sales_client = sales_client
         self.inventory_client = inventory_client
         self.report_generator = report_generator
+
+        self.fuzzy_match_field_name = fuzzy_match_field_name
+        self.fuzzy_match_threshold = fuzzy_match_threshold
 
         self.source_df = None
         self.target_df = None
@@ -37,6 +42,7 @@ class ReconciliationService:
         self.comparison_df = None
 
         self.mismatches = None
+        self.fuzzy_matches = None
         self.summary_df = None
 
     @staticmethod
@@ -85,6 +91,79 @@ class ReconciliationService:
         self.comparison_results = compare_records(self.source_df, self.target_df)
 
         self.comparison_df = pd.DataFrame(self.comparison_results)
+
+        return self.comparison_results
+
+    def apply_fuzzy_matching(self):
+
+        self.fuzzy_matches = {}
+
+        if self.fuzzy_match_field_name is None:
+
+            return self.comparison_results
+
+        field_name = self.fuzzy_match_field_name
+
+        if field_name in {"transaction_id", "invoice_number", "product_id"}:
+
+            raise ValueError("Fuzzy matching cannot be used for authoritative " f"reconciliation key field: {field_name}")
+
+        if field_name not in self.source_df.columns:
+
+            raise ValueError("Configured fuzzy-match field is missing from " f"Sales data: {field_name}")
+
+        if field_name not in self.target_df.columns:
+
+            raise ValueError("Configured fuzzy-match field is missing from " f"Inventory data: {field_name}")
+
+        target_by_transaction_id = (self.target_df.set_index("transaction_id"))
+
+        for result in self.comparison_results:
+
+            transaction_id = result["transaction_id"]
+
+            if transaction_id not in target_by_transaction_id.index:
+
+                continue
+
+            source_rows = self.source_df[self.source_df["transaction_id"] == transaction_id]
+
+            target_rows = self.target_df[self.target_df["transaction_id"] == transaction_id]
+
+            if source_rows.empty or target_rows.empty:
+
+                continue
+
+            source_value = source_rows.iloc[0][field_name]
+
+            # Fuzzy matching is secondary and does not select or replace the authoritative transaction match.
+            #
+            # For duplicate reservations, compare against each textual value and retain the best score.
+            scores = []
+
+            for _, target_row in target_rows.iterrows():
+
+                fuzzy_result = fuzzy_match_field(left_value=source_value,
+                                                 right_value=target_row[field_name],
+                                                 field_name=field_name,
+                                                 threshold=self.fuzzy_match_threshold)
+
+                scores.append(fuzzy_result)
+
+            if not scores:
+
+                continue
+
+            best_result = max(scores, key=lambda item: item["score"])
+
+            fuzzy_result = {"field": best_result["field"],
+                            "score": best_result["score"],
+                            "threshold": best_result["threshold"],
+                            "matched": best_result["matched"]}
+
+            result["fuzzy_match"] = fuzzy_result
+
+            self.fuzzy_matches[transaction_id] = fuzzy_result
 
         return self.comparison_results
 
@@ -186,6 +265,8 @@ class ReconciliationService:
 
         self.compare()
 
+        self.apply_fuzzy_matching()
+
         self.detect_mismatches()
 
         self.combine_results()
@@ -201,4 +282,5 @@ class ReconciliationService:
                 "comparison_results": self.comparison_results,
                 "comparison_df": self.comparison_df,
                 "mismatches": self.mismatches,
+                "fuzzy_matches": self.fuzzy_matches,
                 "summary_df": self.summary_df}

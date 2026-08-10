@@ -217,9 +217,9 @@ def test_summary_saved_and_chart_generated_from_same_summary(monkeypatch, tmp_pa
 
     charts_dir = (reports_dir / "charts")
 
-    monkeypatch.setattr("app.reporting.analytics.settings.reports_dir", reports_dir)
+    monkeypatch.setattr("app.reporting.analytics.settings.REPORTS_DIR", str(reports_dir))
 
-    monkeypatch.setattr("app.reporting.analytics.settings.charts_dir", charts_dir)
+    monkeypatch.setattr("app.reporting.analytics.settings.CHARTS_DIR", str(charts_dir))
 
     comparison_df = (build_final_reconciliation_result())
 

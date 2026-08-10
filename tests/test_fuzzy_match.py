@@ -1,6 +1,10 @@
 import pytest
 
-from app.services.fuzzy_match_service import (DEFAULT_SIMILARITY_THRESHOLD, calculate_similarity, is_probable_match, fuzzy_match)
+from app.services.fuzzy_match_service import (DEFAULT_SIMILARITY_THRESHOLD,
+                                              calculate_similarity,
+                                              is_probable_match,
+                                              fuzzy_match,
+                                              fuzzy_match_field)
 
 def test_calculate_similarity_exact_match():
 
@@ -136,3 +140,32 @@ def test_fuzzy_matching_is_secondary_to_transaction_id_reconciliation():
 
     assert result["matched"] is True
     assert result["score"] == 100.0
+
+def test_fuzzy_match_field_returns_secondary_match_metadata():
+
+    result = fuzzy_match_field("ABC Corporation",
+                               "ABC Corp",
+                               field_name="secondary_text",
+                               threshold=70)
+
+    assert result["field"] == "secondary_text"
+    assert result["left_value"] == "ABC Corporation"
+    assert result["right_value"] == "ABC Corp"
+    assert result["threshold"] == 70
+    assert result["score"] >= 70
+    assert result["matched"] is True
+
+def test_fuzzy_match_field_is_not_authoritative_reconciliation():
+
+    result = fuzzy_match_field("ABC Corporation",
+                               "ABC Corp",
+                               field_name="secondary_text")
+
+    assert result["field"] == "secondary_text"
+
+    assert "transaction_id" not in result
+    assert "invoice_number" not in result
+    assert "product_id" not in result
+
+    assert "status" not in result
+    assert "mismatch_type" not in result
