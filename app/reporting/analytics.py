@@ -67,11 +67,13 @@ def save_summary(summary_df: pd.DataFrame, output_dir: Path | None = None) -> Pa
 
     if output_dir is None:
 
-        output_dir = Path(settings.REPORTS_DIR)
+        output_dir = settings.reports_dir
+
+    output_dir = Path(output_dir)
 
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    output_path = (output_dir / "summary.csv")
+    output_path = output_dir / "summary.csv"
 
     summary_df.to_csv(output_path, index=False)
 
@@ -80,8 +82,10 @@ def save_summary(summary_df: pd.DataFrame, output_dir: Path | None = None) -> Pa
 def generate_chart(summary_df: pd.DataFrame, output_dir: Path | None = None) -> Path:
 
     if output_dir is None:
-        
-        output_dir = Path(settings.CHARTS_DIR)
+    
+        output_dir = settings.charts_dir
+
+    output_dir = Path(output_dir)
 
     output_dir.mkdir(parents=True, exist_ok=True)
 

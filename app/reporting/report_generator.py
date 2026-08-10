@@ -1,4 +1,5 @@
 import json
+from pathlib import Path
 
 import pandas as pd
 
@@ -61,7 +62,9 @@ class ReportGenerator:
 
     def generate_reports(self, results) -> None:
 
-        settings.reports_dir.mkdir(parents=True, exist_ok=True)
+        reports_dir = Path(settings.reports_dir)
+
+        reports_dir.mkdir(parents=True, exist_ok=True)
 
         matched_records = []
         mismatched_records = []
@@ -89,8 +92,8 @@ class ReportGenerator:
 
         missing_df = self._build_dataframe(missing_records)
 
-        matched_df.to_csv(settings.reports_dir / "matched.csv", index=False)
+        matched_df.to_csv(reports_dir / "matched.csv", index=False)
 
-        mismatched_df.to_csv(settings.reports_dir / "mismatched.csv", index=False)
+        mismatched_df.to_csv(reports_dir / "mismatched.csv", index=False)
 
-        missing_df.to_csv(settings.reports_dir / "missing.csv", index=False)
+        missing_df.to_csv(reports_dir / "missing.csv", index=False)

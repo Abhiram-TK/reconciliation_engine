@@ -1,8 +1,11 @@
+from pathlib import Path
 import os
 
 from dotenv import load_dotenv
 
 load_dotenv()
+
+REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 
 class Settings:
 
@@ -12,12 +15,16 @@ class Settings:
 
     INVENTORY_SERVICE_TOKEN = os.getenv("INVENTORY_SERVICE_TOKEN")
 
-    REPORTS_DIR = os.getenv("REPORTS_DIR", "reports")
+    source_file = (REPOSITORY_ROOT / "app" / "data" / "source.csv")
 
-    CHARTS_DIR = os.getenv("CHARTS_DIR", "reports/charts")
+    target_file = (REPOSITORY_ROOT / "app" / "data" / "target.csv")
 
-    DATASET_SIZE = int(os.getenv("DATASET_SIZE", 1000))
+    reports_dir = (REPOSITORY_ROOT / "reports")
 
-    MISMATCH_RATE = float(os.getenv("MISMATCH_RATE", 0.05))
+    charts_dir = (REPOSITORY_ROOT / "reports" / "charts")
+
+    dataset_size = int(os.getenv("DATASET_SIZE", 1000))
+
+    mismatch_rate = float(os.getenv("MISMATCH_RATE", 0.05))
 
 settings = Settings()
