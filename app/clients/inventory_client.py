@@ -17,7 +17,7 @@ class InventoryClient:
 
         url = f"{self.base_url}/reservations/reconciliation"
 
-        headers = {"Authorization": f"Bearer {self.auth_token}"}
+        headers = {"X-Internal-Service-Token": self.auth_token}
 
         try:
 
@@ -35,11 +35,11 @@ class InventoryClient:
 
             if status_code == 401:
 
-                raise RuntimeError("Inventory Dispatch System rejected the JWT") from error
+                raise RuntimeError("Inventory Dispatch System rejected the internal service token") from error
 
             if status_code == 403:
 
-                raise RuntimeError("Inventory Dispatch System JWT does not have view_reservations permission") from error
+                raise RuntimeError("Inventory Dispatch System denied access to reconciliation reservation data") from error
 
             raise RuntimeError(f"Inventory Dispatch System returned HTTP {status_code}") from error
 
@@ -79,12 +79,12 @@ class InventoryClient:
 
             if not isinstance(record, dict):
 
-                raise RuntimeError("Invalid Inventory reservation record " f"at index {index}")
+                raise RuntimeError(f"Invalid Inventory reservation record at index {index}")
 
-            missing_fields = (required_fields - record.keys())
+            missing_fields = required_fields - record.keys()
 
             if missing_fields:
 
-                raise RuntimeError("Inventory Dispatch System response is missing required fields: " f"{sorted(missing_fields)}")
+                raise RuntimeError("Inventory Dispatch System response is missing " f"required fields: {sorted(missing_fields)}")
 
         return pd.DataFrame(records)
