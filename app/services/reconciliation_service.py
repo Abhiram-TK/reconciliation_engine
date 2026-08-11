@@ -1,3 +1,6 @@
+from datetime import datetime, timezone
+from uuid import uuid4
+
 import pandas as pd
 
 from app.services.normalization_service import normalize_dataframe
@@ -26,7 +29,22 @@ class ReconciliationService:
                                   "status",
                                   "reserved_at"}
 
-    def __init__(self, sales_client, inventory_client, report_generator, fuzzy_match_field_name=None, fuzzy_match_threshold=90.0):
+    SALES_SOURCE_SYSTEM = "Project 3 — Sales Transaction Service"
+
+    SALES_SOURCE_ENDPOINT = "/internal/transactions"
+
+    INVENTORY_TARGET_SYSTEM = "Project 2 — Inventory Dispatch System"
+
+    INVENTORY_TARGET_ENDPOINT = "/reservations/reconciliation"
+
+    COMPARISON_KEY = "transaction_id"
+
+    def __init__(self,
+                 sales_client,
+                 inventory_client,
+                 report_generator,
+                 fuzzy_match_field_name=None,
+                 fuzzy_match_threshold=90.0):
 
         self.sales_client = sales_client
         self.inventory_client = inventory_client
@@ -45,20 +63,52 @@ class ReconciliationService:
         self.fuzzy_matches = None
         self.summary_df = None
 
-    @staticmethod
-    def _validate_columns(dataframe: pd.DataFrame, required_columns: set[str], source_name: str) -> None:
+        self.run_metadata = None
 
-        missing_columns = (required_columns - set(dataframe.columns))
+    @staticmethod
+
+    def _validate_columns(dataframe: pd.DataFrame,
+                          required_columns: set[str],
+                          source_name: str) -> None:
+
+        missing_columns = required_columns - set(dataframe.columns)
 
         if missing_columns:
 
-            raise ValueError(f"{source_name} data is missing required columns: " f"{sorted(missing_columns)}")
+            raise ValueError(f"{source_name} data is missing required columns: "
+                             f"{sorted(missing_columns)}")
+
+    def _build_run_metadata(self) -> dict:
+
+        if self.source_df is None:
+
+            raise RuntimeError("Sales data must be retrieved before run metadata can be created.")
+
+        if self.target_df is None:
+
+            raise RuntimeError("Inventory data must be retrieved before run metadata can be created.")
+
+        return {"run_id": f"REC-{datetime.now(timezone.utc):%Y%m%d-%H%M%S}-{uuid4().hex[:8].upper()}",
+                "execution_time": datetime.now(timezone.utc).isoformat(),
+                "source": {"project": self.SALES_SOURCE_SYSTEM,
+                           "service": "Sales Transaction Service",
+                           "endpoint": self.SALES_SOURCE_ENDPOINT,
+                           "records_retrieved": len(self.source_df),
+                           "fields": list(self.SALES_REQUIRED_COLUMNS)},
+                "target": {"project": self.INVENTORY_TARGET_SYSTEM,
+                           "service": "Inventory Dispatch System",
+                           "endpoint": self.INVENTORY_TARGET_ENDPOINT,
+                           "records_retrieved": len(self.target_df),
+                           "fields": list(self.INVENTORY_REQUIRED_COLUMNS)},
+                "reconciliation": {"comparison_key": self.COMPARISON_KEY,
+                                   "source_system": self.SALES_SOURCE_SYSTEM,
+                                   "target_system": self.INVENTORY_TARGET_SYSTEM}}
 
     def retrieve_data(self):
 
-        self.source_df = (self.sales_client.get_sales_records())
+        self.source_df = self.sales_client.get_sales_records()
 
-        self.target_df = (self.inventory_client.get_inventory_records())
+        self.target_df = self.inventory_client.get_inventory_records()
 
         self._validate_columns(dataframe=self.source_df,
                                required_columns=self.SALES_REQUIRED_COLUMNS,
@@ -73,11 +123,11 @@ class ReconciliationService:
     def normalize(self):
 
         if self.source_df is None:
-            
+
             raise RuntimeError("Sales data must be retrieved before normalization.")
 
         if self.target_df is None:
-            
+
             raise RuntimeError("Inventory data must be retrieved before normalization.")
 
         self.source_df = normalize_dataframe(self.source_df)
@@ -104,17 +154,22 @@ class ReconciliationService:
 
         field_name = self.fuzzy_match_field_name
 
-        if field_name in {"transaction_id", "invoice_number", "product_id"}:
+        if field_name in {"transaction_id",
+                          "invoice_number",
+                          "product_id"}:
 
-            raise ValueError("Fuzzy matching cannot be used for authoritative " f"reconciliation key field: {field_name}")
+            raise ValueError("Fuzzy matching cannot be used for authoritative "
+                             f"reconciliation key field: {field_name}")
 
         if field_name not in self.source_df.columns:
 
-            raise ValueError("Configured fuzzy-match field is missing from " f"Sales data: {field_name}")
+            raise ValueError("Configured fuzzy-match field is missing from "
+                             f"Sales data: {field_name}")
 
         if field_name not in self.target_df.columns:
 
-            raise ValueError("Configured fuzzy-match field is missing from " f"Inventory data: {field_name}")
+            raise ValueError("Configured fuzzy-match field is missing from "
+                             f"Inventory data: {field_name}")
 
         target_by_transaction_id = (self.target_df.set_index("transaction_id"))
 
@@ -136,9 +191,10 @@ class ReconciliationService:
 
             source_value = source_rows.iloc[0][field_name]
 
-            # Fuzzy matching is secondary and does not select or replace the authoritative transaction match.
+            # Fuzzy matching is secondary and does not replace the authoritative transaction_id comparison.
             #
-            # For duplicate reservations, compare against each textual value and retain the best score.
+            # For duplicate reservations, evaluate every textual value and retain the best score.
+
             scores = []
 
             for _, target_row in target_rows.iterrows():
@@ -174,6 +230,7 @@ class ReconciliationService:
         return self.mismatches
 
     @staticmethod
+
     def _merge_mismatch_details(comparison_results: list[dict], mismatches: list[dict]) -> list[dict]:
 
         merged_results = [result.copy() for result in comparison_results]
@@ -193,6 +250,7 @@ class ReconciliationService:
                 # Preserve the primary comparison status.
                 #
                 # Mismatch detection enriches the result but does not independently create a second row for the same transaction.
+
                 for key, value in mismatch.items():
 
                     if key == "transaction_id":
@@ -202,16 +260,18 @@ class ReconciliationService:
                     existing_result[key] = value
 
                 # Detailed mismatch detection is authoritative regarding discrepancy classification.
+
                 existing_result["status"] = "MISMATCHED"
 
             else:
 
                 # This occurs for ORPHAN_RESERVATION because there is no corresponding Sales transaction for the comparison layer to iterate over.
+
                 orphan_result = {"transaction_id": transaction_id,
                                  "invoice_number": mismatch.get("invoice_number"),
                                  "status": "MISMATCHED",
                                  "sales_status": None,
-                                 "inventory_status": (mismatch.get("reservation_statuses")),
+                                 "inventory_status": mismatch.get("reservation_statuses"),
                                  "quantity": mismatch.get("sales_quantity"),
                                  "reserved_quantity": mismatch.get("reserved_quantity")}
 
@@ -233,7 +293,8 @@ class ReconciliationService:
 
             raise RuntimeError("Mismatch detection must be completed before results can be combined.")
 
-        self.comparison_results = (self._merge_mismatch_details(comparison_results=self.comparison_results, mismatches=self.mismatches))
+        self.comparison_results = (self._merge_mismatch_details(comparison_results=self.comparison_results,
+                                                                mismatches=self.mismatches))
 
         self.comparison_df = pd.DataFrame(self.comparison_results)
 
@@ -241,13 +302,21 @@ class ReconciliationService:
 
     def generate_reports(self):
 
-        self.report_generator.generate_reports(self.comparison_results)
+        if self.run_metadata is None:
+
+            raise RuntimeError("Run metadata must be created before reports are generated.")
+
+        self.report_generator.generate_reports(self.comparison_results, self.run_metadata)
 
         return self.comparison_results
 
     def generate_analytics(self):
 
-        self.summary_df = generate_summary(self.comparison_df)
+        if self.run_metadata is None:
+
+            raise RuntimeError("Run metadata must be created before analytics are generated.")
+
+        self.summary_df = generate_summary(self.comparison_df, self.run_metadata)
 
         save_summary(self.summary_df)
 
@@ -260,6 +329,10 @@ class ReconciliationService:
     def run(self):
 
         self.retrieve_data()
+
+        # Run-level provenance is created only after both authoritative upstream datasets have been retrieved and their contracts have been validated.
+
+        self.run_metadata = self._build_run_metadata()
 
         self.normalize()
 
@@ -277,7 +350,8 @@ class ReconciliationService:
 
         self.generate_visualizations()
 
-        return {"source_df": self.source_df,
+        return {"run_metadata": self.run_metadata,
+                "source_df": self.source_df,
                 "target_df": self.target_df,
                 "comparison_results": self.comparison_results,
                 "comparison_df": self.comparison_df,
