@@ -13,6 +13,17 @@ class InventoryClient:
         self.timeout = 10
         self.auth_token = settings.INVENTORY_SERVICE_TOKEN
 
+        self.retrieval_metadata = {"source_system": "Project 2 — Inventory Dispatch System",
+                                   "endpoint": "/reservations/reconciliation",
+                                   "authentication": "X-Internal-Service-Token",
+                                   "record_count": 0,
+                                   "fields": ["transaction_id",
+                                              "reservation_id",
+                                              "batch_id",
+                                              "reserved_quantity",
+                                              "status",
+                                              "reserved_at"]}
+
     def get_inventory_records(self) -> pd.DataFrame:
 
         url = f"{self.base_url}/reservations/reconciliation"
@@ -58,6 +69,8 @@ class InventoryClient:
         if not isinstance(records, list):
 
             raise RuntimeError("Inventory Dispatch System returned an invalid response format")
+
+        self.retrieval_metadata["record_count"] = len(records)
 
         if not records:
 

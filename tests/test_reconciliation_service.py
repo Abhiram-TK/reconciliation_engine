@@ -4,6 +4,18 @@ from app.services.reconciliation_service import ReconciliationService
 
 class FakeSalesClient:
 
+    def __init__(self):
+
+        self.retrieval_metadata = {"source_system": "Project 3 — Sales Transaction Service",
+                                   "endpoint": "/internal/transactions",
+                                   "record_count": 4,
+                                   "fields": ["transaction_id",
+                                              "invoice_number",
+                                              "product_id",
+                                              "quantity",
+                                              "status",
+                                              "created_at"]}
+
     def get_sales_records(self):
 
         return pd.DataFrame([
@@ -41,6 +53,19 @@ class FakeSalesClient:
                 }])
 
 class FakeInventoryClient:
+
+    def __init__(self):
+
+        self.retrieval_metadata = {"source_system": "Project 2 — Inventory Dispatch System",
+                                   "endpoint": "/reservations/reconciliation",
+                                   "authentication": "X-Internal-Service-Token",
+                                   "record_count": 5,
+                                   "fields": ["transaction_id",
+                                              "reservation_id",
+                                              "batch_id",
+                                              "reserved_quantity",
+                                              "status",
+                                              "reserved_at"]}
 
     def get_inventory_records(self):
 
@@ -97,11 +122,13 @@ class FakeReportGenerator:
 
         self.called = False
         self.results = None
+        self.run_metadata = None
 
-    def generate_reports(self, results):
+    def generate_reports(self, results, run_metadata):
 
         self.called = True
         self.results = results
+        self.run_metadata = run_metadata
 
 def test_reconciliation_service_complete_step_2_pipeline(monkeypatch):
 
@@ -160,8 +187,42 @@ def test_reconciliation_service_complete_step_2_pipeline(monkeypatch):
 
     output = service.run()
 
+    # ------------------
+    # 1. Run provenance
+    # ------------------
+
+    run_metadata = output["run_metadata"]
+
+    assert run_metadata["source_system"] == ("Project 3 — Sales Transaction Service")
+
+    assert run_metadata["target_system"] == ("Project 2 — Inventory Dispatch System")
+
+    assert run_metadata["source_record_count"] == len(output["source_df"])
+
+    assert run_metadata["target_record_count"] == len(output["target_df"])
+
+    assert run_metadata["comparison_key"] == "transaction_id"
+
+    assert run_metadata["source_fields"] == ["transaction_id",
+                                             "invoice_number",
+                                             "product_id",
+                                             "quantity",
+                                             "status",
+                                             "created_at"]
+
+    assert run_metadata["target_fields"] == ["transaction_id",
+                                             "reservation_id",
+                                             "batch_id",
+                                             "reserved_quantity",
+                                             "status",
+                                             "reserved_at"]
+
+    assert run_metadata["source_endpoint"] == "/internal/transactions"
+
+    assert run_metadata["target_endpoint"] == ("/reservations/reconciliation")
+
     # ------------------------
-    # 1. Dependency injection
+    # 2. Dependency injection
     # ------------------------
 
     assert service.sales_client is sales_client
@@ -169,7 +230,7 @@ def test_reconciliation_service_complete_step_2_pipeline(monkeypatch):
     assert service.report_generator is report_generator
 
     # -------------
-    # 2. Retrieval
+    # 3. Retrieval
     # -------------
 
     assert len(output["source_df"]) == 4
@@ -190,7 +251,7 @@ def test_reconciliation_service_complete_step_2_pipeline(monkeypatch):
                                                  "reserved_at"]
 
     # -----------------------------------
-    # 3. Normalization actually occurred
+    # 4. Normalization actually occurred
     # -----------------------------------
 
     assert len(normalization_calls) == 2
@@ -215,7 +276,7 @@ def test_reconciliation_service_complete_step_2_pipeline(monkeypatch):
     assert pd.api.types.is_datetime64_any_dtype(normalized_inventory["reserved_at"])
 
     # -----------------------------------------------
-    # 4. Authoritative cross-service transaction IDs
+    # 5. Authoritative cross-service transaction IDs
     # -----------------------------------------------
 
     assert set(output["source_df"]["transaction_id"]) == {101, 102, 103, 104}
@@ -223,7 +284,7 @@ def test_reconciliation_service_complete_step_2_pipeline(monkeypatch):
     assert set(output["target_df"]["transaction_id"]) == {101, 102, 103, 105}
 
     # ----------------------------------------
-    # 5. Detailed mismatch detection occurred
+    # 6. Detailed mismatch detection occurred
     # ----------------------------------------
 
     mismatches = output["mismatches"]
@@ -236,7 +297,7 @@ def test_reconciliation_service_complete_step_2_pipeline(monkeypatch):
                               "ORPHAN_RESERVATION"}
 
     # ----------------------------
-    # 6. Verify quantity mismatch
+    # 7. Verify quantity mismatch
     # ----------------------------
 
     quantity_mismatches = [mismatch for mismatch in mismatches if mismatch["transaction_id"] == 102]
@@ -250,7 +311,7 @@ def test_reconciliation_service_complete_step_2_pipeline(monkeypatch):
     assert quantity_mismatches[0]["reserved_quantity"] == 7
 
     # ------------------------------
-    # 7. Verify duplicate detection
+    # 8. Verify duplicate detection
     # ------------------------------
 
     duplicate_mismatches = [mismatch for mismatch in mismatches if mismatch["transaction_id"] == 103]
@@ -271,7 +332,7 @@ def test_reconciliation_service_complete_step_2_pipeline(monkeypatch):
     assert not any(mismatch["transaction_id"] == 103 and mismatch["mismatch_type"] == "QUANTITY_MISMATCH" for mismatch in mismatches)
 
     # ------------------------------
-    # 8. Verify missing reservation
+    # 9. Verify missing reservation
     # ------------------------------
 
     missing_mismatches = [mismatch for mismatch in mismatches if mismatch["transaction_id"] == 104]
@@ -285,7 +346,7 @@ def test_reconciliation_service_complete_step_2_pipeline(monkeypatch):
     assert missing_mismatches[0]["reserved_quantity"] is None
 
     # -----------------------------
-    # 9. Verify orphan reservation
+    # 10. Verify orphan reservation
     # -----------------------------
 
     orphan_mismatches = [mismatch for mismatch in mismatches if mismatch["transaction_id"] == 105]
@@ -297,10 +358,12 @@ def test_reconciliation_service_complete_step_2_pipeline(monkeypatch):
     assert orphan_mismatches[0]["reserved_quantity"] == 6
 
     # -----------------------------------------------------
-    # 10. ReportGenerator received FINAL reconciled output
+    # 11. ReportGenerator received FINAL reconciled output
     # -----------------------------------------------------
 
     assert report_generator.called is True
+
+    assert report_generator.run_metadata == run_metadata
 
     reported_results = (report_generator.results)
 
@@ -322,7 +385,7 @@ def test_reconciliation_service_complete_step_2_pipeline(monkeypatch):
     assert reported_by_transaction[105]["mismatch_type"] == "ORPHAN_RESERVATION"
 
     # --------------------------------------------------------
-    # 11. Final result contains all five reconciliation cases
+    # 12. Final result contains all five reconciliation cases
     # --------------------------------------------------------
 
     final_results = output[ "comparison_results"]
@@ -344,7 +407,7 @@ def test_reconciliation_service_complete_step_2_pipeline(monkeypatch):
     assert final_by_transaction[105]["status"] == "MISMATCHED"
 
     # ---------------------------------------------
-    # 12. Analytics received the SAME final result
+    # 13. Analytics received the SAME final result
     # ---------------------------------------------
 
     assert len(analytics_inputs) == 1
@@ -361,7 +424,7 @@ def test_reconciliation_service_complete_step_2_pipeline(monkeypatch):
     assert (analytics_input["mismatch_type"].notna().sum() == 4)
 
     # ---------------------------------------------------
-    # 13. Summary reflects final reconciliation statuses
+    # 14. Summary reflects final reconciliation statuses
     # ---------------------------------------------------
 
     summary_df = output["summary_df"]

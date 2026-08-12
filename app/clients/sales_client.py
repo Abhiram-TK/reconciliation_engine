@@ -12,6 +12,16 @@ class SalesClient:
         self.base_url = settings.SALES_SERVICE_URL.rstrip("/")
         self.timeout = 10
 
+        self.retrieval_metadata = {"source_system": "Project 3 — Sales Transaction Service",
+                                   "endpoint": "/internal/transactions",
+                                   "record_count": 0,
+                                   "fields": ["transaction_id",
+                                              "invoice_number",
+                                              "product_id",
+                                              "quantity",
+                                              "status",
+                                              "created_at"]}
+
     def get_sales_records(self) -> pd.DataFrame:
 
         url = f"{self.base_url}/internal/transactions"
@@ -50,12 +60,14 @@ class SalesClient:
 
         if not records:
 
+            self.retrieval_metadata["record_count"] = 0
+
             return pd.DataFrame(columns=["transaction_id",
                                          "invoice_number",
                                          "product_id",
                                          "quantity",
                                          "status",
-                                         "created_at",])
+                                         "created_at"])
 
         required_fields = {"transaction_id",
                            "invoice_number",
@@ -75,5 +87,7 @@ class SalesClient:
             if missing_fields:
 
                 raise RuntimeError("Sales Transaction Service response is missing " f"required fields: {sorted(missing_fields)}")
+
+        self.retrieval_metadata["record_count"] = len(records)
 
         return pd.DataFrame(records)

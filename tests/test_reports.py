@@ -131,6 +131,30 @@ def build_reconciliation_results():
                            "status": "RESERVED",
                            "reserved_at": "2026-08-08T13:01:00Z"}]}]
 
+def build_run_metadata():
+
+    return {"run_id": "test-run-001",
+            "execution_time": "2026-08-12T11:00:00",
+            "source_system": "Project 3 — Sales Transaction Service",
+            "source_endpoint": "/internal/transactions",
+            "source_record_count": 5,
+            "source_fields": ["transaction_id",
+                              "invoice_number",
+                              "product_id",
+                              "quantity",
+                              "status",
+                              "created_at"],
+            "target_system": "Project 2 — Inventory Dispatch System",
+            "target_endpoint": "/reservations/reconciliation",
+            "target_record_count": 5,
+            "target_fields": ["transaction_id",
+                              "reservation_id",
+                              "batch_id",
+                              "reserved_quantity",
+                              "status",
+                              "reserved_at"],
+            "comparison_key": "transaction_id"}
+
 def test_generate_reports_preserves_all_report_files(tmp_path, monkeypatch):
 
     monkeypatch.setattr("app.reporting.report_generator.settings.reports_dir", tmp_path)
@@ -382,3 +406,55 @@ def test_generate_reports_preserves_one_row_per_final_result(tmp_path, monkeypat
     assert set(all_reported_ids) == {101, 102, 103, 104, 105}
 
     assert len(all_reported_ids) == len(set(all_reported_ids))
+
+def test_generate_reports_preserves_upstream_provenance(tmp_path, monkeypatch):
+
+    monkeypatch.setattr("app.reporting.report_generator.settings.reports_dir", tmp_path)
+
+    generator = ReportGenerator()
+
+    results = build_reconciliation_results()
+
+    run_metadata = build_run_metadata()
+
+    generator.generate_reports(results, run_metadata)
+
+    matched_df = pd.read_csv(tmp_path / "matched.csv")
+    mismatched_df = pd.read_csv(tmp_path / "mismatched.csv")
+    missing_df = pd.read_csv(tmp_path / "missing.csv")
+
+    for dataframe in [matched_df, mismatched_df, missing_df]:
+
+        assert (dataframe["source_system"].eq("Project 3 — Sales Transaction Service").all())
+
+        assert (dataframe["target_system"].eq("Project 2 — Inventory Dispatch System").all())
+
+        assert dataframe["comparison_key"].eq("transaction_id").all()
+
+def test_generate_reports_preserves_reconciliation_semantics(tmp_path, monkeypatch):
+
+    monkeypatch.setattr("app.reporting.report_generator.settings.reports_dir", tmp_path)
+
+    generator = ReportGenerator()
+
+    results = build_reconciliation_results()
+
+    run_metadata = build_run_metadata()
+
+    generator.generate_reports(results, run_metadata)
+
+    matched_df = pd.read_csv(tmp_path / "matched.csv")
+    mismatched_df = pd.read_csv(tmp_path / "mismatched.csv")
+    missing_df = pd.read_csv(tmp_path / "missing.csv")
+
+    assert set(matched_df["status"]) == {"MATCHED"}
+
+    assert set(mismatched_df["status"]) == {"MISMATCHED"}
+
+    assert set(mismatched_df["mismatch_type"]) == {"QUANTITY_MISMATCH",
+                                                   "DUPLICATE_RESERVATION",
+                                                   "ORPHAN_RESERVATION"}
+
+    assert set(missing_df["status"]) == {"MISSING"}
+
+    assert set(missing_df["mismatch_type"]) == {"MISSING_RESERVATION"}
