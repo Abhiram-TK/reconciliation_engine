@@ -19,9 +19,9 @@ class Settings:
 
     target_file = (REPOSITORY_ROOT / "app" / "data" / "target.csv")
 
-    reports_dir = (REPOSITORY_ROOT / "reports")
+    reports_dir = (REPOSITORY_ROOT / "app" / "reports")
 
-    charts_dir = (REPOSITORY_ROOT / "reports" / "charts")
+    charts_dir = (REPOSITORY_ROOT / "app" / "reports" / "charts")
 
     dataset_size = int(os.getenv("DATASET_SIZE", 1000))
 

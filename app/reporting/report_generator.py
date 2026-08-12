@@ -176,7 +176,13 @@ class ReportGenerator:
 
         for column, value in reversed(list(provenance.items())):
 
-            dataframe.insert(0, column, value)
+            if column in dataframe.columns:
+
+                dataframe[column] = value
+
+            else:
+
+                dataframe.insert(0, column, value)
 
         return dataframe
 
