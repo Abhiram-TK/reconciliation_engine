@@ -16,24 +16,30 @@ def main() -> None:
 
         if run_metadata:
 
-            print(f"Run ID: {run_metadata.get('run_id', 'N/A')}")
+            source_metadata = run_metadata.get("source", {})
+            target_metadata = run_metadata.get("target", {})
+            reconciliation_metadata = run_metadata.get("reconciliation", {})
+
+            print(f"Run ID: "
+                  f"{run_metadata.get('run_id', 'N/A')}")
+
             print(f"Execution time: "
                   f"{run_metadata.get('execution_time', 'N/A')}")
 
             print(f"Source: "
-                  f"{run_metadata.get('source_system', 'N/A')}")
+                  f"{source_metadata.get('project', 'N/A')}")
 
             print(f"Target: "
-                  f"{run_metadata.get('target_system', 'N/A')}")
+                  f"{target_metadata.get('project', 'N/A')}")
 
             print(f"Comparison key: "
-                  f"{run_metadata.get('comparison_key', 'N/A')}")
+                  f"{reconciliation_metadata.get('comparison_key', 'N/A')}")
 
             print(f"Sales records: "
-                  f"{run_metadata.get('source_record_count', 'N/A')}")
+                  f"{source_metadata.get('records_retrieved', 'N/A')}")
 
             print(f"Inventory records: "
-                  f"{run_metadata.get('target_record_count', 'N/A')}")
+                  f"{target_metadata.get('records_retrieved', 'N/A')}")
 
     print("==============================================")
     print("Reports and analytics generated successfully.")
